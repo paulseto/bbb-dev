@@ -1,0 +1,8 @@
+terraform {
+  backend "s3" {
+    bucket  = "my-terraform-s3-bucket"
+    key     = "terraform/scalelite-enterprise.tfstate"
+    region  = "us-east-1"
+    profile = "default"
+  }
+}
