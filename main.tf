@@ -23,8 +23,8 @@ data "aws_ami" "this" {
   most_recent = true
 
   filter {
-    name   = "owner-id"
-    values = [local.instance_ami_owner_id]
+    name   = "name"
+    values = [local.instance_ami_filter]
   }
   filter {
     name   = "architecture"
@@ -264,7 +264,7 @@ resource "local_file" "upload" {
     
     OPTIONS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ServerAliveInterval=120 -o ServerAliveCountMax=2"
     
-    scp -i ${local.ssh_key_file} $OPTIONS $1 ${local.ssh_user}@${local.fqdn}:$2
+    scp -r -i ${local.ssh_key_file} $OPTIONS $1 ${local.ssh_user}@${local.fqdn}:$2
 EOT
 }
 
@@ -289,7 +289,7 @@ output "instance_created_based_on_image" {
   value = {
     id          = data.aws_ami.this.image_id
     name        = data.aws_ami.this.name
-    name_filter = local.instance_ami_filter
+    name_filter = local.instance_ami_id == "" ? local.instance_ami_filter: ""
     description = data.aws_ami.this.description
     created     = data.aws_ami.this.creation_date
     deprecated  = data.aws_ami.this.deprecation_time

@@ -1,0 +1,13 @@
+---
+hostname: dev26
+
+ssh:
+  user: ec2-user
+
+instance:
+  ami_filter: amzn2-ami-kernel-*-hvm-*-x86_64-gp2
+  #ami_owner_id: "137112412989"
+
+ssl:
+  crt: ~/ssl/certificates/_.mountcorona.com.crt
+  key: ~/ssl/certificates/_.mountcorona.com.key
