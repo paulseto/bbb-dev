@@ -23,8 +23,8 @@ data "aws_ami" "this" {
   most_recent = true
 
   filter {
-    name   = "name"
-    values = [local.instance_ami_filter]
+    name   = local.instance_ami_id == "" ? "name" : "image-id"
+    values = [local.instance_ami_id == "" ? local.instance_ami_filter : local.instance_ami_id]
   }
   filter {
     name   = "architecture"
@@ -194,32 +194,19 @@ resource "aws_instance" "this" {
     destination = "/home/${local.ssh_user}/bbb.key"
   }
 
-  # Copies ansible completion setup 
-  provisioner "file" {
-    source      = "./post_setup.sh"
-    destination = "/home/${local.ssh_user}/post_setup.sh"
-  }
-
-  # Copies deployment workstation setup
-  provisioner "file" {
-    source      = "./deploy.sh"
-    destination = "/home/${local.ssh_user}/deployment_setup.sh"
-  }
 
   # Copies ssh identity file
   provisioner "file" {
-    source      = "~/.ssh/mountcorona.pem"
-    destination = "/home/${local.ssh_user}/.ssh/mountcorona.pem"
+    source      = local.ssh_key_file
+    destination = "/home/${local.ssh_user}/.ssh/${basename(local.ssh_key_file)}"
   }
-  
+
 
   provisioner "remote-exec" {
     inline = [
       "chmod +x /home/${local.ssh_user}/setup.sh",
       "chmod +x /home/${local.ssh_user}/configure.sh",
       "sudo mv /home/${local.ssh_user}/configure.sh /root/configure.sh",
-      "chmod +x /home/${local.ssh_user}/post_setup.sh",
-      "chmod +x /home/${local.ssh_user}/deployment_setup.sh",
       "sudo mkdir -p /etc/nginx/ssl",
       "sudo mv ~/bbb.* /etc/nginx/ssl"
     ]
@@ -227,22 +214,22 @@ resource "aws_instance" "this" {
 
 }
 
-resource "aws_eip_association" "this" {
-  instance_id   = resource.aws_instance.this.id
-  allocation_id = resource.aws_eip.this.id
-}
+#resource "aws_eip_association" "this" {
+#  instance_id   = resource.aws_instance.this.id
+#  allocation_id = resource.aws_eip.this.id
+#}
 
-data "aws_route53_zone" "this" {
-  name = local.domain
-}
+#data "aws_route53_zone" "this" {
+#  name = local.domain
+#}
 
-resource "aws_route53_record" "this" {
-  zone_id = data.aws_route53_zone.this.zone_id
-  name    = local.fqdn
-  type    = "A"
-  ttl     = "300"
-  records = [resource.aws_eip.this.public_ip]
-}
+#resource "aws_route53_record" "this" {
+#  zone_id = data.aws_route53_zone.this.zone_id
+#  name    = local.fqdn
+#  type    = "A"
+#  ttl     = "300"
+#  records = [resource.aws_eip.this.public_ip]
+#}
 
 resource "local_file" "ssh" {
   filename        = format("connect_%s", terraform.workspace)
@@ -269,15 +256,15 @@ EOT
 }
 
 resource "local_file" "ansible" {
-  filename = format(".inv.%s.yml", terraform.workspace)
+  filename        = format(".inv.%s.yml", terraform.workspace)
   file_permission = "0744"
   content = yamlencode({
-    "all": {
-      "hosts": {
-        "${local.fqdn}": {
-          "ansible_user": "${local.ssh_user}",
-          "ansible_ssh_private_key_file": "${local.ssh_key_file}",
-          "ssh_config": "StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ServerAliveInterval=120 -o ServerAliveCountMax=2"
+    "all" : {
+      "hosts" : {
+        "${local.fqdn}" : {
+          "ansible_user" : "${local.ssh_user}",
+          "ansible_ssh_private_key_file" : "${local.ssh_key_file}",
+          "ssh_config" : "StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ServerAliveInterval=120 -o ServerAliveCountMax=2"
         }
       }
     }
@@ -287,9 +274,10 @@ resource "local_file" "ansible" {
 
 output "instance_created_based_on_image" {
   value = {
+    fqdn        = local.fqdn
     id          = data.aws_ami.this.image_id
     name        = data.aws_ami.this.name
-    name_filter = local.instance_ami_id == "" ? local.instance_ami_filter: ""
+    name_filter = local.instance_ami_id == "" ? local.instance_ami_filter : ""
     description = data.aws_ami.this.description
     created     = data.aws_ami.this.creation_date
     deprecated  = data.aws_ami.this.deprecation_time

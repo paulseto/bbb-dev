@@ -1,13 +1,25 @@
 ---
-hostname: dev26
+domain: allthejelly.com
+hostname: c7
+
+aws:
+  region: us-east-1
 
 ssh:
-  user: ec2-user
+  user: centos
+  key_name: bbb-demo
+  key_file: ~/.ssh/bbb-demo.pem
+  keys:
+    - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDD/DtgFNME/ZthL0Jgy7pJmP1eeO5BXB5+p4n2WhaTBYp6FOxU+nFPILAla6oqqRKNFqmJ/S5NH2wLWDPr38QJHhJaoCBCmcVHgepPQQG6lddBWoZScupfMcQSBVPELNFINDorOqE7Smp6Qf/gbjJBiE866adSYud5NTfVVmje2BoGfIJqqMciHSAPlUm1quJFb0Fv5JevX6vGUosnfg5TIf8c4M+GoRdip8NajsJIVjEbkskGkCuHKlyYmRxiKmW5KS2vjyHH+UWSRhDpHTszQtOMXuL2TlX+DbH1oAeG1a4PKR0iEx/7EWugXq9FMLsqBRWcBqtDKFC38hs2eItx fred@Freds-MacBook-Air.local
 
 instance:
-  ami_filter: amzn2-ami-kernel-*-hvm-*-x86_64-gp2
-  #ami_owner_id: "137112412989"
+  ami_id: ami-002070d43b0a4f171
+  type: c5.4xlarge
 
 ssl:
-  crt: ~/ssl/certificates/_.mountcorona.com.crt
-  key: ~/ssl/certificates/_.mountcorona.com.key
+  crt: ~/ssl/certificates/_.allthejelly.com.crt
+  key: ~/ssl/certificates/_.allthejelly.com.key
+
+scripts:
+  setup: bbb-centos7.sh
+  config: bbb-configure-centos7.sh

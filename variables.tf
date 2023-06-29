@@ -13,6 +13,7 @@ locals {
   ssh_user     = lookup(local.ssh, "user", "ubuntu")
   ssh_key_name = lookup(local.ssh, "key_name", "mountcorona")
   ssh_key_file = lookup(local.ssh, "key_file", "~/.ssh/mountcorona.pem")
+  ssh_keys     = lookup(local.ssh, "keys", [])
 
   ssl     = lookup(local.vars, "ssl", {})
   ssl_crt = lookup(local.ssl, "crt", "")
@@ -28,6 +29,6 @@ locals {
   instance_iam_role     = lookup(local.instance, "iam_role", "AdministratorAccess")
 
   script        = lookup(local.vars, "scripts", {})
-  script_setup  = lookup(local.script, "setup", "~/scalelite-enterprise/packer/scripts/bbb-amzn2.sh")
-  script_config = lookup(local.script, "config", "~/scalelite-enterprise/packer/scripts/bbb-configure.sh")
+  script_setup  = lookup(local.script, "setup", "bbb-centos7.sh")
+  script_config = lookup(local.script, "config", "bbb-configure-centos7.sh")
 }
